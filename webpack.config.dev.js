@@ -24,7 +24,8 @@ module.exports = webpackMerge(commonConfig, {
                     {loader: 'angular2-template-loader'},
                     {loader: 'angular-router-loader'}
                 ]
-            }
+            },
+            { test: /\.(png|jpg|gif)$/, loader: 'file-loader?name=./images/[name].[ext]' }
         ]
 
     }

@@ -1,9 +1,10 @@
 {
-  "name": "sender-program",
+  "name": "receiver-program",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
+    "debug": "node --debug-brk ./bin/www",
     "build": "del-cli public/js/app && webpack --config webpack.config.dev.js --progress --profile --watch",
     "build:prod": "del-cli public/js/app && ngc -p tsconfig.aot.json && ngc -p tsconfig.aot.json && webpack --config webpack.config.prod.js --progress --profile --bail && del-cli 'public/js/app/**/*.js' 'public/js/app/**/*.js.map' '!public/js/app/bundle.js' '!public/js/app/*.chunk.js' 'assets/app/**/*.ngfactory.ts' 'assets/app/**/*.shim.ts' 'assets/app/**/*.ngsummary.json' 'assets/app/**/*.ngstyle.ts'"
   },
@@ -22,15 +23,16 @@
     "@angular/upgrade": "^4.0.0",
     "body-parser": "~1.15.2",
     "cookie-parser": "~1.4.3",
+    "core-js": "^2.4.1",
     "debug": "~2.2.0",
     "express": "~4.14.0",
     "hbs": "~3.1.0",
+    "jsonwebtoken": "^7.4.1",
     "morgan": "~1.6.1",
     "reflect-metadata": "^0.1.3",
-    "core-js": "^2.4.1",
     "rxjs": "^5.2.0",
-    "zone.js": "^0.8.5",
-    "serve-favicon": "~2.3.0"
+    "serve-favicon": "~2.3.0",
+    "zone.js": "^0.8.5"
   },
   "devDependencies": {
     "@types/core-js": "0.9.36",

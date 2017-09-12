@@ -18,7 +18,8 @@ module.exports = {
             {
                 test: /\.css$/,
                 use: [{ loader: 'raw-loader' }]
-            }
+            },
+            { test: /\.(png|jpg|gif)$/, loader: 'file-loader?name=./images/[name].[ext]' }
         ],
         exprContextCritical: false
 
