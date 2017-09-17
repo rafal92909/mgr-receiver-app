@@ -1,3 +1,4 @@
+import { SmallChartComponent } from './dashboard/small-chart/small-chart.component';
 import { ErrorServie } from './error/error.service';
 import { ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -17,6 +18,8 @@ import { HeaderComponent } from './header.component';
 import { ErrorComponent } from './error/error.component';
 import { DashboardComponent } from './dashboard/dashboard.component';
 
+import { ChartModule } from 'angular2-highcharts';
+
 @NgModule({
     declarations: [
         AppComponent,        
@@ -26,10 +29,12 @@ import { DashboardComponent } from './dashboard/dashboard.component';
         LogoutComponent,
         LogoComponent,
         ErrorComponent,
-        DashboardComponent
+        DashboardComponent,
+        SmallChartComponent
 ],
     imports: [
         BrowserModule, 
+        ChartModule.forRoot(require('highcharts')),
         routing, 
         HttpModule,
         CommonModule,
