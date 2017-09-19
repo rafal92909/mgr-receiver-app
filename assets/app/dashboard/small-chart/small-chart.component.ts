@@ -31,7 +31,7 @@ export class SmallChartComponent implements OnInit  {
         this.chart.series[1].data[0].remove(false, false);
        }
        
-    }, 5000);
+    }, 500);
   }
 
   saveChart(chart) {

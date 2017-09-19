@@ -1,4 +1,5 @@
 {
   "pin": "8520",
-  "secret_string": "this_is_secret_string_for_jwt_token"
+  "secret_string": "this_is_secret_string_for_jwt_token",
+  "session_time": 7200
 }

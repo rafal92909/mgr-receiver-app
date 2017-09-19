@@ -1,3 +1,4 @@
+import { DashboardServie } from './dashboard.service';
 import { Component, OnInit } from '@angular/core';
 
 @Component({
@@ -6,10 +7,15 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./dashboard.component.css']
 })
 export class DashboardComponent implements OnInit {
-  loggerIds = [ "abc1", "abc2", "abc3", "abc4", "abc5", "abc6", "abc7" ];
-  constructor() { }
+  loggerIds = [];
+  constructor(private dashboardServie: DashboardServie) { }
 
   ngOnInit() {
+    this.dashboardServie.getLoggers().subscribe(
+      (loggerIds) => {
+        this.loggerIds = loggerIds
+      }
+    );
   }
 
 }

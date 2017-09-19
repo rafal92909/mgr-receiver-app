@@ -1,3 +1,4 @@
+import { DashboardServie } from './dashboard/dashboard.service';
 import { SmallChartComponent } from './dashboard/small-chart/small-chart.component';
 import { ErrorServie } from './error/error.service';
 import { ReactiveFormsModule } from '@angular/forms';
@@ -40,7 +41,7 @@ import { ChartModule } from 'angular2-highcharts';
         CommonModule,
         ReactiveFormsModule
     ],
-    providers: [AuthorizeService, ErrorServie],
+    providers: [AuthorizeService, ErrorServie, DashboardServie],
     bootstrap: [AppComponent]
 })
 export class AppModule {
