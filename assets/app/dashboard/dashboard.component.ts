@@ -8,11 +8,15 @@ import { Component, OnInit } from '@angular/core';
 })
 export class DashboardComponent implements OnInit {
   loggerIds = [];
-  constructor(private dashboardServie: DashboardServie) { }
+  constructor(private dashboardServie: DashboardServie) { 
+    this.loggerIds = [];
+  }
 
   ngOnInit() {
+    
     this.dashboardServie.getLoggers().subscribe(
       (loggerIds) => {
+        this.loggerIds = [];
         this.loggerIds = loggerIds
       }
     );

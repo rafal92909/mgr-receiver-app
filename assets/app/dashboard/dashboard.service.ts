@@ -16,6 +16,7 @@ export class DashboardServie {
         : '';
         return this.http.get('http://localhost:3001/dashboard/get-loggers' + token)
         .map((response: Response) => {
+            this.loggers = [];
             const mongoLoggers = response.json().obj;            
             for (let logger of mongoLoggers) {
                 this.loggers.push(logger);
