@@ -4,6 +4,8 @@ var jwt = require('jsonwebtoken');
 var fs = require("fs");
 var mongoose = require('mongoose');
 var DescFrame = require('../models/desc-frame');
+var DataFrame = require('../models/data-frame');
+
 
 router.use('/', function (req, res, next) {
     if (req.url == "/") {
@@ -39,7 +41,7 @@ router.use('/', function (req, res, next) {
 
 //////////////////////////////////////////////////////////////////////////////////// loggers
 router.get('/get-loggers', function (req, res, next) {
-    DescFrame.distinct('ID.VALUE', function(err, ids) { //.exec(function (err, items) {
+    DescFrame.distinct('ID.VALUE', function(err, ids) { 
         if (err) {
             return res.status(500).json({
                 title: 'An error occured',
@@ -53,5 +55,34 @@ router.get('/get-loggers', function (req, res, next) {
     });
 });
 
+//////////////////////////////////////////////////////////////////////////////////// data frames
+router.get('/get-data-frames', function (req, res, next) {    
+    let itemId = req.query.itemId;
+    DescFrame.find({'ID.VALUE': itemId }).sort({ _id: -1}).limit(1).exec( function(err, descFrame) { 
+        if (err) {
+            return res.status(500).json({
+                title: 'An error occured',
+                error: err
+            });
+        }        
+
+        let idColName = descFrame[0]._doc.ID.KEY;
+        DataFrame.find({ [idColName]: itemId }).sort({ _id: -1}).limit(10).exec(function(err, dataFrames) { 
+            if (err) {
+                return res.status(500).json({
+                    title: 'An error occured',
+                    error: err
+                });
+            }
+            res.status(201).json({
+                message: 'Success',
+                obj: [descFrame, dataFrames]
+            });
+        });
+    });
+
+
+
+});
 
 module.exports = router;
