@@ -132,16 +132,28 @@ export class SmallChartComponent implements OnInit {
   setInitialValues() {
     this.initialValues = true;
     for (let i = 0; i < this.dataFrames.length; i++) {
-      if (this.dataFrames[i].hasOwnProperty('VALUES')) {
+      if (this.dataFrames[i].hasOwnProperty('VALUES') && this.descFrame[0].hasOwnProperty('VALUES')) {
         if (this.dataFrames[i].hasOwnProperty(this.dateKey)) { // jeżeli jest data
           let dateValue = this.dataFrames[i][this.dateKey];
           let x = (new Date(dateValue)).getTime();
           for (let j = 0; j < this.valueKeys.length; j++) {
-            if (this.dataFrames[i].VALUES.hasOwnProperty(this.valueKeys[j])) {
-              let y = this.dataFrames[i].VALUES[this.valueKeys[j]]; // nie umiem wczytac wartosci string na os y
-              y = Math.random() * 10;
-              y = y.toFixed(2) * 1;
-              this.chart.series[j].addPoint([x, y]);
+            if (this.dataFrames[i].VALUES.hasOwnProperty(this.valueKeys[j]) && this.descFrame[0].VALUES.hasOwnProperty(this.valueKeys[j])) {
+              if (this.descFrame[0].VALUES[this.valueKeys[j]].hasOwnProperty('dataType')) {
+                let y = this.dataFrames[i].VALUES[this.valueKeys[j]]; // nie umiem wczytac wartosci string na os y
+                if (y.length > 0) {
+                  y = y[0];
+                  if (this.descFrame[0].VALUES[this.valueKeys[j]].dataType == "set") { // odwzorowanie na tablice
+                    y = 0;
+                  } else {
+                    if (isNaN(y)) {
+                      y = 0;
+                    } else {
+                      y = Number(y); // parsowanie string do liczby
+                    }
+                  }
+                  this.chart.series[j].addPoint([x, y]);
+                }
+              }
             }
           }
         }
