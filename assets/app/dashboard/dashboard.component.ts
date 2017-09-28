@@ -8,6 +8,7 @@ import { Component, OnInit } from '@angular/core';
 })
 export class DashboardComponent implements OnInit {
   loggerIds = [];
+  //x = "1234ED5";
   constructor(private dashboardServie: DashboardServie) { 
     this.loggerIds = [];
   }

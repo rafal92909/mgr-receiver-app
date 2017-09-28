@@ -1,3 +1,4 @@
+import { LogoComponent } from './../../logo.component';
 import { DashboardServie } from './../dashboard.service';
 import { Component, Input, OnInit } from '@angular/core';
 import { ChartModule } from 'angular2-highcharts';
@@ -15,6 +16,8 @@ export class SmallChartComponent implements OnInit {
   loggerName: string = 'Logger';
   loggerDesc: string = '';
   initialValues: boolean = false;
+  minValue;
+  maxValue;
   valueKeys = [];
   dataFrames = [];
   descFrame = [];
@@ -95,12 +98,30 @@ export class SmallChartComponent implements OnInit {
         let valueKeys = Object.keys(this.descFrame[0].VALUES);
         for (let i = 0; i < valueKeys.length; i++) {
           this.valueKeys.push(valueKeys[i]);
-          if (this.descFrame[0].VALUES[valueKeys[i]].hasOwnProperty('desc')) {
-            series += '{ "name": "' + this.descFrame[0].VALUES[valueKeys[i]].desc + '"}, '
-          } else {
-            series += '{ "name": "' + valueKeys[i] + '"}, '
+          let whichAxis = '"yAxis": 0';
+          if (this.descFrame[0].VALUES[valueKeys[i]].hasOwnProperty('dataType')) {
+            if (this.descFrame[0].VALUES[valueKeys[i]].dataType == 'set') {
+              whichAxis = '"yAxis": 1';
+            }
           }
+
+          if (this.descFrame[0].VALUES[valueKeys[i]].hasOwnProperty('desc')) {
+            series += '{ "name": "' + this.descFrame[0].VALUES[valueKeys[i]].desc + '", ' + whichAxis + ' }, '
+          } else {
+            series += '{ "name": "' + valueKeys[i] + '", ' + whichAxis + ' }, '
+          }
+          this.setMinMax(valueKeys[i]);
+
         }
+        if (this.minValue == null) {
+          this.minValue = 0;
+        }
+        if (this.maxValue == null) {
+          this.maxValue = 100;
+        }
+        this.minValue = 0;
+        this.maxValue = 100;
+
         if (series.endsWith(', ')) {
           series = series.substring(0, series.length - 2);
         }
@@ -111,7 +132,7 @@ export class SmallChartComponent implements OnInit {
         '"marginRight": 10, ' +
         '"series": [' + series + '], ' +
         '"xAxis": { "title": { "text": "Measurement date" }, "type": "datetime", "tickPixelInterval": 150 }, ' +
-        '"yAxis": { "title": { "text": "Values" }}, ' +
+        '"yAxis": [{ "title": { "text": "Values" }}, { "title": { "text": "Values 2" }, "opposite": true }], ' +
         '"plotOptions": { "series": { "animation": false }, "line": { "dataLabels": { "enabled": true }, "enableMouseTracking": false }}, ' +
         //'"chart": { "animation": false }' + 
         '"chart": { "animation": "Highcharts.svg" }' +
@@ -119,15 +140,100 @@ export class SmallChartComponent implements OnInit {
 
       stringObj = JSON.parse(stringObj);
       this.options = stringObj;
+      this.setYAxis();
+
+
 
       this.dataFrames.reverse(); // odwracamy tabliece z danymi, bo zapytanie zwraca najnowszy jako pierwszy, a musimy wykres zasilic danymi od konca
-
-
       if (this.chart != null && !this.initialValues) {
         this.setInitialValues();
       }
     }
   }
+
+  setMinMax(valueKey) {
+    if (this.descFrame[0].VALUES[valueKey].hasOwnProperty('dataType')) {
+      if (this.descFrame[0].VALUES[valueKey].dataType == 'range') {
+        if (this.descFrame[0].VALUES[valueKey].hasOwnProperty('valueMin')) {
+          let minValue = this.descFrame[0].VALUES[valueKey].valueMin;
+          if (minValue != null && minValue !== '') {
+            if (this.minValue == null) {
+              this.minValue = minValue;
+            } else {
+              if (this.minValue > minValue) {
+                this.minValue = minValue;
+              }
+            }
+          }
+        }
+        if (this.descFrame[0].VALUES[valueKey].hasOwnProperty('valueMax')) {
+          let maxValue = this.descFrame[0].VALUES[valueKey].valueMax;
+          if (maxValue != null && maxValue !== '') {
+            if (this.maxValue == null) {
+              this.maxValue = maxValue;
+            } else {
+              if (this.maxValue > maxValue) {
+                this.maxValue = maxValue;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  setYAxis() { // NIE DZIALA POPRAWNIE
+    let yAxisTab = {};
+    for (let i = 0; i < this.valueKeys.length; i++) {
+      if (this.descFrame[0].VALUES[this.valueKeys[i]].hasOwnProperty('dataType')) {
+        if (this.descFrame[0].VALUES[this.valueKeys[i]].dataType == 'set') {
+          if (this.descFrame[0].VALUES[this.valueKeys[i]].hasOwnProperty('dataSet')) {
+            let dataSet = this.descFrame[0].VALUES[this.valueKeys[i]].dataSet;
+            for (let k = 0; k < dataSet.length; k++) { // wartosc na osi danego seta to (max - min) / liczba_setow * odpowiednia_wartosc_seta_z_tablicy (od 0 do k)
+              let label = dataSet[k];
+              let key = (Math.round((this.maxValue - this.minValue) / dataSet.length)) * k;
+              yAxisTab[key] = label;               
+            }
+            //console.log(yAxisTab);
+            this.options.yAxis[1] = {
+              labels: {
+                formatter: function () {                  
+                  var value;
+                  if (this.value != null && !isNaN(this.value)) {                    
+                    var count = Object.keys(yAxisTab).length;
+                    for (let i = 0; i < count; i++) {
+                      if (Object.keys(yAxisTab)[i] == this.value) { // klucz rowny wartosci na wykresie
+                        value = yAxisTab[this.value];
+                        break;
+                      } else {
+                        if (Object.keys(yAxisTab)[i] < this.value && (i - 1) != count) { // wartosc wieksza od klucza, to nie ten opis
+                          continue;
+                        } else { // wartosc klucza wieksza - wez poprzedni opis
+                          if (i > 0) {
+                            value = yAxisTab[Object.keys(yAxisTab)[i - 1]]
+                          } else {
+                            value = yAxisTab[Object.keys(yAxisTab)[0]]
+                          }
+                          break;
+                        }
+                      }
+                    }
+                    //value = yAxisTab[this.value];
+                  }
+                  return value !== 'undefined' ? value : this.value;
+                }
+              }, title: { text: "Values 2" }, opposite: true
+            }
+            return;
+          }
+        }
+      }
+    }
+    this.options.yAxis[1] = {
+      title: { text: "" }, opposite: true
+    }
+  }
+
 
   setInitialValues() {
     this.initialValues = true;
@@ -143,7 +249,20 @@ export class SmallChartComponent implements OnInit {
                 if (y.length > 0) {
                   y = y[0];
                   if (this.descFrame[0].VALUES[this.valueKeys[j]].dataType == "set") { // odwzorowanie na tablice
-                    y = 0;
+                    if (this.descFrame[0].VALUES[this.valueKeys[j]].hasOwnProperty('dataSet')) {
+                      let dataSet = this.descFrame[0].VALUES[this.valueKeys[j]].dataSet;
+                      for (let k = 0; k < dataSet.length; k++) {
+                        if (y == dataSet[k]) {
+                          y = (this.maxValue - this.minValue) / dataSet.length;
+                          y = Math.round(y);
+                          y = y * k; // wartosc na osi danego seta to (max - min) / liczba_setow * odpowiednia_wartosc_seta_z_tablicy (od 0 do k)
+                          break;
+                        }
+                      }
+                      if (isNaN(y)) {
+                        y = 0;
+                      }
+                    }
                   } else {
                     if (isNaN(y)) {
                       y = 0;
@@ -166,6 +285,31 @@ export class SmallChartComponent implements OnInit {
     if (!this.initialValues) {
       this.setInitialValues();
     }
+    //   var change = {
+    //     0: 'Very Low',
+    //     5: 'Low',
+    //     10: 'Medium',
+    //     15: 'High',
+    //     20: 'Very High'
+    // };
+    //   console.log(this.options.yAxis);
+    //   this.options.yAxis = {
+    //     labels: {
+    //         formatter: function() {
+    //             var value = change[this.value];
+    //             return value !== 'undefined' ? value : this.value;
+    //         }
+    //     }
+    // }
+
   }
-}
+
+// TODO
+
+// 4. opisac os Y wartosciami tekstowymi seta
+
+// DONE
+// 1. wziac wszystkie wartosci typu range i sprawdzic ich min i max - ustalic jeden min i jedne max
+// 2. wysylac wszystkie wartosci seta w ramce typu desc
+// 3. tablica odwzorowujaca wartosci seta na liczby - wartosc na osi danego seta to (max - min) / liczba_setow * odpowiednia_wartosc_seta_z_tablicy (od 0 do x)
 
