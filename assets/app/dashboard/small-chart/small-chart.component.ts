@@ -304,12 +304,23 @@ export class SmallChartComponent implements OnInit {
 
   }
 
-// TODO
+// TODO - 2017-10-18
+// 1. wprawic mini charty w ruch
+// 6. stworzyc duzego charta - z danymi z bazy
+// 7. tworzyc tyle dużych chartów ile serii danych
+// 8. historyczny przeglad danych
 
-// 4. opisac os Y wartosciami tekstowymi seta
 
-// DONE
+// DONE - 2017-10-18
+// 2. stworzyć nową pustą strnę dla duzego charta
+// 3. on click na mini chart - przenosi do strony z duzym chartem
+// 4. przekazanie do duzego charta ID loggera
+// 5. stworzyc duzego charta - z danymi na sztywno
+
+
+
+// DONE - 2017-09-20
 // 1. wziac wszystkie wartosci typu range i sprawdzic ich min i max - ustalic jeden min i jedne max
 // 2. wysylac wszystkie wartosci seta w ramce typu desc
 // 3. tablica odwzorowujaca wartosci seta na liczby - wartosc na osi danego seta to (max - min) / liczba_setow * odpowiednia_wartosc_seta_z_tablicy (od 0 do x)
-
+// 4. opisac os Y wartosciami tekstowymi seta - miej lub bardziej jest

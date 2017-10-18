@@ -13,8 +13,7 @@ export class DashboardComponent implements OnInit {
     this.loggerIds = [];
   }
 
-  ngOnInit() {
-    
+  ngOnInit() {    
     this.dashboardServie.getLoggers().subscribe(
       (loggerIds) => {
         this.loggerIds = [];

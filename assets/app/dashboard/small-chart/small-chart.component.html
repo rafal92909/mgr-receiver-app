@@ -1,1 +1,3 @@
-<chart [options]="options" (load)="saveChart($event.context)"></chart>
+<a [routerLink]="['/bigchart', {id: itemId}]">
+    <chart [options]="options" (load)="saveChart($event.context)"></chart>
+</a>

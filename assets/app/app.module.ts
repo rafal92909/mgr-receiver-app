@@ -1,3 +1,4 @@
+import { BigChartComponent } from './dashboard/big-chart/big-chart.component';
 import { DashboardServie } from './dashboard/dashboard.service';
 import { SmallChartComponent } from './dashboard/small-chart/small-chart.component';
 import { ErrorServie } from './error/error.service';
@@ -31,7 +32,8 @@ import { ChartModule } from 'angular2-highcharts';
         LogoComponent,
         ErrorComponent,
         DashboardComponent,
-        SmallChartComponent
+        SmallChartComponent,
+        BigChartComponent
 ],
     imports: [
         BrowserModule, 
