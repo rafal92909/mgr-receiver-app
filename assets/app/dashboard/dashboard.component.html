@@ -1,7 +1,7 @@
 <div class="container-fluid">
   <div class="row" style="margin-bottom: 20px">
-    <div *ngFor="let itemId of loggerIds;" class="col-lg-6">
-      <mgr-small-chart [itemId]="itemId"></mgr-small-chart>
+    <div *ngFor="let itemId of loggerIds; let i = index" class="col-lg-6">
+      <mgr-small-chart [itemId]="itemId" [iterator]="i"></mgr-small-chart>
     </div>   
     <!-- <mgr-small-chart [itemId]="x"></mgr-small-chart> -->
 

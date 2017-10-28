@@ -31,11 +31,11 @@ export class DashboardServie {
 
     }
 
-    getDataFrames(itemId: String) {
+    getDataFrames(itemId: String, iterator: Number) {
         const token = localStorage.getItem('token')
         ? '&token=' + localStorage.getItem('token')
         : '';
-        return this.http.get('http://localhost:3001/dashboard/get-data-frames?itemId=' + itemId + token)
+        return this.http.get('http://localhost:3001/dashboard/get-data-frames?itemId=' + itemId + "&iterator=" + iterator + token)
         .map((response: Response) => {
             var descFrame = [];
             var dataFrames = [];

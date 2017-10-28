@@ -1,15 +1,19 @@
+import { SmallChartService } from './small-chart.service';
 import { LogoComponent } from './../../logo.component';
 import { DashboardServie } from './../dashboard.service';
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { ChartModule } from 'angular2-highcharts';
 
 @Component({
   selector: 'mgr-small-chart',
   templateUrl: './small-chart.component.html',
-  styleUrls: ['./small-chart.component.css']
+  styleUrls: ['./small-chart.component.css'],
+  providers: [SmallChartService]
 })
-export class SmallChartComponent implements OnInit {
+export class SmallChartComponent implements OnInit, OnDestroy {
   @Input() itemId: string;
+  @Input() iterator: number;
+  
   chart: Object;
   options: Object;
   dateKey: string;
@@ -22,7 +26,14 @@ export class SmallChartComponent implements OnInit {
   dataFrames = [];
   descFrame = [];
 
-  constructor(private dashboardServie: DashboardServie) {
+  private messages = [];
+  private connection;
+
+  constructor(private dashboardServie: DashboardServie, private smallChartService: SmallChartService) {
+  }
+
+  ngOnDestroy() {
+    this.connection.unsubscribe();
   }
 
   ngOnInit() {
@@ -59,7 +70,7 @@ export class SmallChartComponent implements OnInit {
 
 
 
-    this.dashboardServie.getDataFrames(this.itemId).subscribe(
+    this.dashboardServie.getDataFrames(this.itemId, this.iterator).subscribe(
       (frames) => {
         this.descFrame = [];
         this.dataFrames = [];
@@ -68,6 +79,14 @@ export class SmallChartComponent implements OnInit {
           this.dataFrames = frames[1];
           if (this.descFrame.length == 1) {
             this.proceed();
+            this.connection = null;
+            this.messages = [];
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            this.connection = this.smallChartService.getMessages(this.iterator).subscribe(message => {
+              this.messages.unshift(message);
+              //console.log(message);
+            });
+            //////////////////////////////////////////////////////////////////////////////////////////////////////////////
           }
         }
       }
