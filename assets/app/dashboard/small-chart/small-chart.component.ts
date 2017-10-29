@@ -1,7 +1,7 @@
 import { SmallChartService } from './small-chart.service';
 import { LogoComponent } from './../../logo.component';
 import { DashboardServie } from './../dashboard.service';
-import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ElementRef, ViewChild } from '@angular/core';
 import { ChartModule } from 'angular2-highcharts';
 
 @Component({
@@ -13,7 +13,8 @@ import { ChartModule } from 'angular2-highcharts';
 export class SmallChartComponent implements OnInit, OnDestroy {
   @Input() itemId: string;
   @Input() iterator: number;
-  
+  @ViewChild('aElement') aElement:ElementRef;
+
   chart: Object;
   options: Object;
   dateKey: string;
@@ -83,7 +84,9 @@ export class SmallChartComponent implements OnInit, OnDestroy {
             //this.messages = [];
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////
             this.connection = this.smallChartService.getMessages(this.iterator).subscribe(message => {
-              this.setNewData(message.data);
+              if (message.data != null) {
+                this.setNewData(message.data);
+              }              
             });
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////
           }
@@ -354,10 +357,16 @@ export class SmallChartComponent implements OnInit, OnDestroy {
 
 
 
-
+  onChartClick() {
+    this.aElement.nativeElement.click();
+  }
 
   saveChart(chart) {
     this.chart = chart;
+    chart.title.element.style.cursor = "pointer";
+     var t = chart.title.element;
+     t.onclick = () => this.onChartClick();
+    
     if (!this.initialValues) {
       this.setInitialValues();
     }
@@ -381,10 +390,13 @@ export class SmallChartComponent implements OnInit, OnDestroy {
   }
 
 // TODO - 2017-10-18
-// 1. wprawic mini charty w ruch
 // 6. stworzyc duzego charta - z danymi z bazy
 // 7. tworzyc tyle dużych chartów ile serii danych
 // 8. historyczny przeglad danych
+
+
+// DONE - 2017-10-29
+// 1. wprawic mini charty w ruch
 
 
 // DONE - 2017-10-18
