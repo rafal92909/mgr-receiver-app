@@ -1,10 +1,10 @@
 <a [routerLink]="['/bigchart', {id: itemId}]">
     <chart [options]="options" (load)="saveChart($event.context)"></chart>
 </a>
-<div class="container" style="width: 100%; margin-bottom: 5px; margin-top: 10px">
+<!-- <div class="container" style="width: 100%; margin-bottom: 5px; margin-top: 10px">
     <article class="panel panel-default" style="margin-bottom: 5px;" *ngFor="let message of messages">
       <div class="panel-body">
         <p [innerHtml]="message.text"></p>
       </div>
     </article>
-  </div>
+  </div> -->

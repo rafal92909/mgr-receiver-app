@@ -65,63 +65,81 @@ router.get('/get-loggers', function (req, res, next) {
 router.get('/get-data-frames', function (req, res, next) {    
     let itemId = req.query.itemId;
     let port = req.query.iterator;
-    DescFrame.find({'ID.VALUE': itemId }).sort({ _id: -1}).limit(1).exec( function(err, descFrame) { 
+    fs.readFile("./myconfig.json", function (err, data) {
         if (err) {
             return res.status(500).json({
-                title: 'An error occured',
-                error: err
+                title: 'Cannot read the config file.',
+                error: { message: err.message }
             });
-        }        
-        if (descFrame.length > 0) {
-            let idColName = descFrame[0]._doc.ID.KEY;
-            let dateColName = descFrame[0]._doc.DATE.KEY;
-            DataFrame.find({ [idColName]: itemId }).sort({ _id: -1}).limit(10).exec(function(err, dataFrames) { 
+        }
+        try {
+            data = JSON.parse(data);
+            let data_frame_interval = data.data_frame_interval;
+            DescFrame.find({'ID.VALUE': itemId }).sort({ _id: -1}).limit(1).exec( function(err, descFrame) { 
                 if (err) {
                     return res.status(500).json({
                         title: 'An error occured',
                         error: err
                     });
-                }
-    
-                if (dataFrames.length > 0) {
-                    let date = dataFrames[0]._doc[dateColName];
-                    DataFrame.updateMany({ [idColName]: itemId, [dateColName]: { $lte: date}}, { $set: { read: true }}).exec(function(err, upd) { 
+                }        
+                if (descFrame.length > 0) {
+                    let idColName = descFrame[0]._doc.ID.KEY;
+                    let dateColName = descFrame[0]._doc.DATE.KEY;
+                    DataFrame.find({ [idColName]: itemId }).sort({ _id: -1}).limit(10).exec(function(err, dataFrames) { 
                         if (err) {
                             return res.status(500).json({
                                 title: 'An error occured',
                                 error: err
                             });
                         }
-                        startConnection(itemId, port);
-                        res.status(201).json({
-                            message: 'Success',
-                            obj: [descFrame, dataFrames]
-                        });
-                    });   
+            
+                        if (dataFrames.length > 0) {
+                            let date = dataFrames[0]._doc[dateColName];
+                            DataFrame.updateMany({ [idColName]: itemId, read: false, [dateColName]: { $lte: date}}, { $set: { read: true }}).exec(function(err, upd) { 
+                                if (err) {
+                                    return res.status(500).json({
+                                        title: 'An error occured',
+                                        error: err
+                                    });
+                                }
+                                startConnection(itemId, port, idColName, dateColName, data_frame_interval);
+                                res.status(201).json({
+                                    message: 'Success',
+                                    obj: [descFrame, dataFrames]
+                                });
+                            });   
+                        } else {
+                            startConnection(itemId, port);
+                            res.status(201).json({
+                                message: 'Success',
+                                obj: [descFrame, dataFrames]
+                            });
+                        }
+                        
+                    });
                 } else {
                     startConnection(itemId, port);
                     res.status(201).json({
                         message: 'Success',
-                        obj: [descFrame, dataFrames]
+                        obj: [descFrame, null]
                     });
                 }
                 
             });
-        } else {
-            startConnection(itemId, port);
-            res.status(201).json({
-                message: 'Success',
-                obj: [descFrame, null]
+        } catch (e) {
+            return res.status(500).json({
+                title: 'Cannot read the config file.',
+                error: { message: e.message }
             });
         }
-        
-    });
+    })
+
 
 
 
 });
 
-function startConnection(itemId, portPart) {
+function startConnection(itemId, portPart, idColName, dateColName, data_frame_interval) {
     let port = "500" + portPart;
 
     if (ilArray[itemId] != null) { // element istnieje - stop i usun element
@@ -141,7 +159,7 @@ function startConnection(itemId, portPart) {
             });
         
             socket.on('add-message', (message) => {
-                io.emit('message', { type: 'new-message', text: message });
+                io.emit('message', { type: 'new-message', data: message });
             });
         });
         
@@ -154,12 +172,9 @@ function startConnection(itemId, portPart) {
         io = ioArray[itemId];
     }
 
-
-
-
     let il = new InfiniteLoop;
-    il.add(ilGetData, portPart, io);
-    il.setInterval(3000);
+    il.add(ilGetData, itemId, idColName, dateColName, io);
+    il.setInterval(data_frame_interval);
     il.onError(function (error) {
         console.log(error);
     });
@@ -168,11 +183,26 @@ function startConnection(itemId, portPart) {
 
 }
 
-function ilGetData(i, io) {
-    let t = Math.random(); 
-    i = Number(i) + 1;
-    t = t + i;
-    io.emit('message', { type: 'new-message', text: t });
+function ilGetData(itemId, idColName, dateColName, io) {
+    
+    DataFrame.find({ [idColName]: itemId, read: false }).exec(function(err, dataFrames) { 
+        if (err) {
+            io.emit('message', { type: 'new-message', data: null });
+        } else {
+            if (dataFrames.length > 0) {
+                let date = dataFrames[dataFrames.length - 1]._doc[dateColName];
+                DataFrame.updateMany({ [idColName]: itemId, read: false, [dateColName]: { $lte: date}}, { $set: { read: true }}).exec(function(err, upd) { 
+                    if (err) {
+                        io.emit('message', { type: 'new-message', data: null });
+                    } else {
+                        io.emit('message', { type: 'new-message', data: dataFrames });
+                    }                
+                });
+            } else {
+                io.emit('message', { type: 'new-message', data: null });
+            }
+        }
+    });    
 }
 
 module.exports = router;

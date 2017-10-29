@@ -26,7 +26,7 @@ export class SmallChartComponent implements OnInit, OnDestroy {
   dataFrames = [];
   descFrame = [];
 
-  private messages = [];
+  //private messages = [];
   private connection;
 
   constructor(private dashboardServie: DashboardServie, private smallChartService: SmallChartService) {
@@ -80,11 +80,10 @@ export class SmallChartComponent implements OnInit, OnDestroy {
           if (this.descFrame.length == 1) {
             this.proceed();
             this.connection = null;
-            this.messages = [];
+            //this.messages = [];
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////
             this.connection = this.smallChartService.getMessages(this.iterator).subscribe(message => {
-              this.messages.unshift(message);
-              //console.log(message);
+              this.setNewData(message.data);
             });
             //////////////////////////////////////////////////////////////////////////////////////////////////////////////
           }
@@ -298,6 +297,64 @@ export class SmallChartComponent implements OnInit, OnDestroy {
       }
     }
   }
+
+
+  setNewData(dataFrames) {
+    for (let i = 0; i < dataFrames.length; i++) {
+      if (dataFrames[i].hasOwnProperty('VALUES') && this.descFrame[0].hasOwnProperty('VALUES')) {
+        if (dataFrames[i].hasOwnProperty(this.dateKey)) { // jeżeli jest data
+          let dateValue = dataFrames[i][this.dateKey];
+          let x = (new Date(dateValue)).getTime();
+          for (let j = 0; j < this.valueKeys.length; j++) {
+            if (dataFrames[i].VALUES.hasOwnProperty(this.valueKeys[j]) && this.descFrame[0].VALUES.hasOwnProperty(this.valueKeys[j])) {
+              if (this.descFrame[0].VALUES[this.valueKeys[j]].hasOwnProperty('dataType')) {
+                let y = dataFrames[i].VALUES[this.valueKeys[j]]; // nie umiem wczytac wartosci string na os y
+                if (y.length > 0) {
+                  y = y[0];
+                  if (this.descFrame[0].VALUES[this.valueKeys[j]].dataType == "set") { // odwzorowanie na tablice
+                    if (this.descFrame[0].VALUES[this.valueKeys[j]].hasOwnProperty('dataSet')) {
+                      let dataSet = this.descFrame[0].VALUES[this.valueKeys[j]].dataSet;
+                      for (let k = 0; k < dataSet.length; k++) {
+                        if (y == dataSet[k]) {
+                          y = (this.maxValue - this.minValue) / dataSet.length;
+                          y = Math.round(y);
+                          y = y * k; // wartosc na osi danego seta to (max - min) / liczba_setow * odpowiednia_wartosc_seta_z_tablicy (od 0 do k)
+                          break;
+                        }
+                      }
+                      if (isNaN(y)) {
+                        y = 0;
+                      }
+                    }
+                  } else {
+                    if (isNaN(y)) {
+                      y = 0;
+                    } else {
+                      y = Number(y); // parsowanie string do liczby
+                    }
+                  }
+                  this.chart.series[j].addPoint([x, y]);
+
+                  var dataLength = this.chart.series[j].data.length;
+                  if (dataLength > 10) {
+                    if (j == this.valueKeys.length - 1) {
+                      this.chart.series[j].data[0].remove(true, true);
+                    } else {
+                      this.chart.series[j].data[0].remove(false, false);
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+
+
+
 
   saveChart(chart) {
     this.chart = chart;
