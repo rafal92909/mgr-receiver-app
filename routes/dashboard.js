@@ -133,10 +133,6 @@ router.get('/get-data-frames', function (req, res, next) {
             });
         }
     })
-
-
-
-
 });
 
 function startConnection(itemId, portPart, idColName, dateColName, data_frame_interval) {

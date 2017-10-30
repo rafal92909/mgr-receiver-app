@@ -3,5 +3,5 @@
 </p>
 <p>{{minX}} - {{maxX}}<p>
 <chart type="StockChart" [options]="options" (load)="saveChart($event.context)">
-  <xAxis (afterSetExtremes)="onAfterSetExtremesX($event)"></xAxis>  
+  <xAxis (setExtremes)="onSetExtremesX($event)"></xAxis>  
 </chart>

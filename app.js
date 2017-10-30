@@ -7,6 +7,7 @@ var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 
 var appRoutes = require('./routes/app');
+var bigchartRoutes = require('./routes/bigchart');
 var authorizeRoutes = require('./routes/authorize');
 var dashboardRoutes = require('./routes/dashboard');
 
@@ -31,6 +32,7 @@ app.use(function(req, res, next) {
   next();
 });
 
+app.use('/bigchart', bigchartRoutes);
 app.use('/authorize', authorizeRoutes);
 app.use('/dashboard', dashboardRoutes);
 app.use('/', appRoutes);

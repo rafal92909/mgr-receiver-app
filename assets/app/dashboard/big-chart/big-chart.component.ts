@@ -1,3 +1,4 @@
+import { BigChartService } from './big-chart.service';
 import { Component, OnInit } from '@angular/core';
 import { Router, ActivatedRoute, Params } from '@angular/router';
 import { ChartModule } from 'angular2-highcharts';
@@ -5,7 +6,8 @@ import { ChartModule } from 'angular2-highcharts';
 @Component({
   selector: 'app-big-chart',
   templateUrl: './big-chart.component.html',
-  styleUrls: ['./big-chart.component.css']
+  styleUrls: ['./big-chart.component.css'],
+  providers: [BigChartService]
 })
 export class BigChartComponent implements OnInit {
   itemId: string;
@@ -15,19 +17,20 @@ export class BigChartComponent implements OnInit {
   minX = '';
   maxX = '';
   flag: boolean  = false;
-  // constructor(private activatedRoute: ActivatedRoute) {
 
-  // }
-  constructor(private activatedRoute: ActivatedRoute) {
+  constructor(private activatedRoute: ActivatedRoute, private bigChartService: BigChartService) {
     
 } 
 
   ngOnInit() {
     this.activatedRoute.params.subscribe((params: Params) => {
       this.itemId = params['id'];
-      console.log(this.itemId);
     });
     this.setChartConfig();
+
+    this.bigChartService.getData(this.itemId, 0, 0).subscribe(dataFrames => {
+      console.log(dataFrames);
+    });
   }
 
   getDateTime(date) {    
@@ -43,16 +46,24 @@ export class BigChartComponent implements OnInit {
   }
 
   onAfterSetExtremesX (e) {
-    if (this.flag) {      
-      let minDate = this.getDateTime(new Date(e.context.min));
-      let maxDate = this.getDateTime(new Date(e.context.max));
-      this.minX = minDate;
-      this.maxX = maxDate;
-      console.log(minDate);
-      console.log(maxDate);
+   
+  }
+  onSetExtremesX(e) {    
+    console.log(e.originalEvent.DOMEvent.type);
+    this.chart.showLoading('Loading data from server...');
+    if (e.originalEvent != null && e.originalEvent.DOMEvent != null) {
+      if (this.flag && e.originalEvent.DOMEvent.type == "mouseup") {        
+        let minDate = this.getDateTime(new Date(e.context.min));
+        let maxDate = this.getDateTime(new Date(e.context.max));
+        this.minX = minDate;
+        this.maxX = maxDate;      
+        this.bigChartService.getData(this.itemId, e.context.min, e.context.max).subscribe(dataFrames => {
+          console.log(dataFrames);
+        });
+        this.chart.hideLoading();
+      } 
     }    
   }
-
 
   saveChart(chart) {
     this.chart = chart;
@@ -87,34 +98,6 @@ export class BigChartComponent implements OnInit {
 
     stringObj = JSON.parse(stringObj);    
     this.options = stringObj;
-    // setInterval(() => {
-    //     var x = (new Date()).getTime();
-    //     var y = Math.random() * 10;      
-    //    this.chart.series[0].addPoint([x,y]);
-    //    y = Math.random() * 10;
-    //    this.chart.series[1].addPoint([x,y]);
-    //    y = Math.random() * 10;
-    //    this.chart.series[2].addPoint([x,y]);
 
-    //    var dataLength = this.chart.series[0].data.length;
-    //    if (dataLength > 10) {
-    //     this.chart.series[0].data[0].remove(false, false);
-    //     this.chart.series[1].data[0].remove(false, false);
-    //     this.chart.series[2].data[0].remove(true, true);
-    //    }
-    // }, 1000);
-
-    // this.options = {
-    //   title: { text: 'angular2-highcharts example' },
-    //   series: [{
-    //     name: 's1',
-    //     data: [2, 3, 5, 8, 13],
-    //     allowPointSelect: true
-    //   }, {
-    //     name: 's2',
-    //     data: [-2, -3, -5, -8, -13],
-    //     allowPointSelect: true
-    //   }]
-    // };
   }
 }
