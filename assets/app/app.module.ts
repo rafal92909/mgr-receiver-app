@@ -38,6 +38,7 @@ import { ChartModule } from 'angular2-highcharts';
     imports: [
         BrowserModule, 
         ChartModule.forRoot(require('highcharts')),
+        ChartModule.forRoot(require('highcharts/highstock')),
         routing, 
         HttpModule,
         CommonModule,

@@ -38,3 +38,23 @@ router.use('/', function (req, res, next) {
         });
     }
 });
+
+
+
+// db.getCollection('dataframes').aggregate([ { $match: { "ID": "123456" }},
+// {$group: {
+//     _id: {
+//         year : { $year : "$timestamp" },        
+//         month : { $month : "$timestamp" },        
+//         day : { $dayOfMonth : "$timestamp" },
+//     },             
+//      record_id: {$last: '$_id'}
+// }},
+// {$project: {
+//      "_id": "$_id",                                    
+//      "record_id": "$record_id",     
+//   }},
+// {$sort: {
+//     'timestamp': -1
+// }}
+// ])
