@@ -1,13 +1,18 @@
-
-
 <chart type="StockChart" [options]="options" (load)="saveChart($event.context)">
   <xAxis (setExtremes)="onSetExtremesX($event)"></xAxis>
 </chart>
 <div style="float: left" class="date">
-    {{minXDate}} <br />
-    {{minXTime}}
+  {{minXDate}}
+  <br /> {{minXTime}}
 </div>
 <div style="float: right; margin-right: 8px" class="date">
-  {{maxXDate}} <br />
-  {{maxXTime}}
+  {{maxXDate}}
+  <br /> {{maxXTime}}
+</div>
+<div style="margin-left: 120px;"> 
+<ul>
+  <li [style.color]="serie.color" class="seriesName" *ngFor="let serie of seriesNames ">
+    {{ serie.name }}
+  </li>
+</ul>
 </div>

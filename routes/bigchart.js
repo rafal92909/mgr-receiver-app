@@ -115,8 +115,8 @@ router.get('/get-data', function (req, res, next) {
 function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, descFrame, res) {
     let startD = getDateTime(new Date(startdate));
     let stopD = getDateTime(new Date(stopdate));
-    // zakres mniejszy niz 1 dzień - laduj wszystko
-    if (range < 24 * 3600 * 1000) {
+    // zakres mniejszy niz 1 godzina - laduj wszystko
+    if (range < 3600 * 1000) {
         DataFrame.find({ [dateColName]: { $gte: startD, $lte: stopD } }).exec(function (err, dataFrames) {
             if (err) {
                 return res.status(500).json({
@@ -158,8 +158,8 @@ function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, d
             });
         });
     } else {
-        // zakres mniejszy niz 2 dni - laduj co minute
-        if (range < 2 * 24 * 3600 * 1000) {
+        // zakres mniejszy niz 1 dzień - laduj co minute
+        if (range < 24 * 3600 * 1000) {
             DataFrame.aggregate(
                 [{ $match: { [idColName]: itemId, [dateColName]: { $gte: startD, $lte: stopD } } },
                 {

@@ -18,10 +18,6 @@ export class BigChartComponent implements OnInit {
   maxXDate = '';
   minXTime = '';
   maxXTime = '';
-  // seria1 = [];
-  // seria2 = [];
-  // seria0 = [];
-
 
   dateKey: string;
   loggerName: string = 'Logger';
@@ -31,7 +27,7 @@ export class BigChartComponent implements OnInit {
   valueKeys = [];
   dataFrames = [];
   descFrame = [];
-
+  seriesNames = [];
 
   constructor(private activatedRoute: ActivatedRoute, private bigChartService: BigChartService) {
 
@@ -97,8 +93,37 @@ export class BigChartComponent implements OnInit {
 
           if (this.descFrame[0].VALUES[valueKeys[i]].hasOwnProperty('desc')) {
             series += '{ "name": "' + this.descFrame[0].VALUES[valueKeys[i]].desc + '", ' + whichAxis + ' }, '
+            switch (i) {
+              case 0:
+                this.seriesNames[i] = { name: this.descFrame[0].VALUES[valueKeys[i]].desc, color: '#7CB5EC' };
+                break;
+              case 1:
+                this.seriesNames[i] = { name: this.descFrame[0].VALUES[valueKeys[i]].desc, color: '#434348' };
+                break;
+              case 2:
+                this.seriesNames[i] = { name: this.descFrame[0].VALUES[valueKeys[i]].desc, color: '#90ED7D' };
+                break;
+              default:
+                this.seriesNames[i] = { name: this.descFrame[0].VALUES[valueKeys[i]].desc, color: '#434348' };
+            }
+
           } else {
             series += '{ "name": "' + valueKeys[i] + '", ' + whichAxis + ' }, '
+            switch (i) {
+              case 0:
+                this.seriesNames[i] = { name: valueKeys[i], color: '#7CB5EC' };
+                break;
+              case 1:
+                this.seriesNames[i] = { name: valueKeys[i], color: '#434348' };
+                break;
+              case 2:
+                this.seriesNames[i] = { name: valueKeys[i], color: '#90ED7D' };
+                break;
+              default:
+                this.seriesNames[i] = { name: valueKeys[i], color: '#434348' };
+            }
+
+
           }
           this.setMinMax(valueKeys[i]);
 
@@ -309,64 +334,19 @@ export class BigChartComponent implements OnInit {
 
         this.bigChartService.getData(this.itemId, e.context.min, e.context.max).subscribe(frames => {
           this.setInitialValues(1, frames[1]);
+          this.chart.hideLoading();
         });
-        // this.chart.series[0].setData(this.seria0);
-        // this.chart.series[1].setData(this.seria1);
-        // this.chart.series[2].setData(this.seria2);
-        this.chart.hideLoading();
       }
     }
   }
 
   saveChart(chart) {
     this.chart = chart;
-    // for (var i = 0; i < 10; i++) {
-    //   let d = new Date();
-    //   d.setDate(d.getDate() - 10 + (i * 10));
-    //   var x = d.getTime();
-    //   var y = Math.random() * 10;
-    //   this.chart.series[0].addPoint([x, y]);
-    //   y = Math.random() * 10;
-    //   this.chart.series[1].addPoint([x, y]);
-    //   y = Math.random() * 10;
-    //   this.chart.series[2].addPoint([x, y]);
-    //   this.initialValues = true;
-    // }
-
     if (!this.initialValues) {
       this.setInitialValues(0, this.dataFrames);
     }
-
-
   }
-  // setChartConfig() {
-  //   this.initialValues = true;
-
-  //   var stringObj = '{ ' +
-  //     '"title": { "text": "Id: ' + this.itemId + '" }, ' +
-  //     '"marginRight": 10, ' +
-  //     '"series": [{ "name": "seria 1" }, { "name": "seria 2" }, { "name": "seria 3" }], ' +
-  //     '"xAxis": { "title": { "text": "Measurement date" }, "type": "datetime", "tickPixelInterval": 150 }, ' +
-  //     '"yAxis": { "title": { "text": "Values" }}, ' +
-  //     '"plotOptions": { "series": { "animation": false }}, ' +
-  //     //'"chart": { "animation": false }' + 
-  //     '"chart": { "animation": "Highcharts.svg", "zoomType": "x" }, ' +
-  //     '"rangeSelector": { "buttons": [{ "type": "hour", "count": "1", "text": "1h" }, { "type": "day", "count": "1", "text": "1d" }, { "type": "month", "count": "1", "text": "1m" }, { "type": "year", "count": "1", "text": "1y" }, { "type": "all", "text": "All" }], "inputEnabled": false, "selected": 4 }' +
-  //     '}';
-
-  //   stringObj = JSON.parse(stringObj);
-  //   this.options = stringObj;
-
-  // }
-
 }
 
-// DONE
-// 2. pobieranie danych przy zmianie zakresu + pobieraj zawsze min i max
-// 4. lepsza prezentacja czasu
-// 5. pobrac min i max przy wczytaniu big chart
-
-
 // TODO
-// 1. blad dla pierwszego czujnika
 // 3. opisy serii 

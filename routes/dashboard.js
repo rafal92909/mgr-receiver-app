@@ -59,8 +59,6 @@ router.get('/get-loggers', function (req, res, next) {
 });
 
 
-// db.getCollection('dataframes').update({ [idColName]: itemId, [dateColName]: { $lte: '2017-10-29 00:10:43'}}, { $set: { read: true }})
-
 //////////////////////////////////////////////////////////////////////////////////// data frames
 router.get('/get-data-frames', function (req, res, next) {    
     let itemId = req.query.itemId;
@@ -75,6 +73,9 @@ router.get('/get-data-frames', function (req, res, next) {
         try {
             data = JSON.parse(data);
             let data_frame_interval = data.data_frame_interval;
+            if (isNaN(data_frame_interval)) {
+                data_frame_interval = 5000;
+            }
             DescFrame.find({'ID.VALUE': itemId }).sort({ _id: -1}).limit(1).exec( function(err, descFrame) { 
                 if (err) {
                     return res.status(500).json({

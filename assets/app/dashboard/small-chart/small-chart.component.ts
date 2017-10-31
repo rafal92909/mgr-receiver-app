@@ -27,7 +27,6 @@ export class SmallChartComponent implements OnInit, OnDestroy {
   dataFrames = [];
   descFrame = [];
 
-  //private messages = [];
   private connection;
 
   constructor(private dashboardServie: DashboardServie, private smallChartService: SmallChartService) {
@@ -38,38 +37,6 @@ export class SmallChartComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-
-    // var stringObj = '{ ' +
-    // '"title": { "text": "Id: ' + this.itemId + '" }, ' +
-    // '"marginRight": 10, ' +
-    // '"series": [{ "name": "seria 1" }, { "name": "seria 2" }, { "name": "seria 3" }], ' +
-    // '"xAxis": { "title": { "text": "Measurement date" }, "type": "datetime", "tickPixelInterval": 150 }, ' +
-    // '"yAxis": { "title": { "text": "Values" }}, ' + 
-    // '"plotOptions": { "series": { "animation": false }}, ' +
-    // //'"chart": { "animation": false }' + 
-    // '"chart": { "animation": "Highcharts.svg" }' + 
-    // '}';
-
-    // stringObj = JSON.parse(stringObj);    
-    // this.options = stringObj;
-    // setInterval(() => {
-    //     var x = (new Date()).getTime();
-    //     var y = Math.random() * 10;      
-    //    this.chart.series[0].addPoint([x,y]);
-    //    y = Math.random() * 10;
-    //    this.chart.series[1].addPoint([x,y]);
-    //    y = Math.random() * 10;
-    //    this.chart.series[2].addPoint([x,y]);
-
-    //    var dataLength = this.chart.series[0].data.length;
-    //    if (dataLength > 10) {
-    //     this.chart.series[0].data[0].remove(false, false);
-    //     this.chart.series[1].data[0].remove(false, false);
-    //     this.chart.series[2].data[0].remove(true, true);
-    //    }
-    // }, 1000);
-
-
 
     this.dashboardServie.getDataFrames(this.itemId, this.iterator).subscribe(
       (frames) => {
@@ -95,15 +62,7 @@ export class SmallChartComponent implements OnInit, OnDestroy {
     );
   }
 
-  // for (let key in Object.keys(jsonObject)) {
-  //   if (Object.keys(jsonObject)[key].startsWith('value')) {
-  //     values = ', ' + jsonObject[Object.keys(jsonObject)[key]] + values;
-  //   }
-  // }
-
   proceed() {
-    //console.log(this.descFrame);
-    //console.log(this.dataFrames);
     if (this.descFrame[0].hasOwnProperty('DATE') && this.dataFrames.length > 0) { // jeżeli czujnik nie wysyła daty pomiaru lub nie ma danych to nie prezentujemy nic
       this.dateKey = this.descFrame[0].DATE.KEY;
 
@@ -369,46 +328,6 @@ export class SmallChartComponent implements OnInit, OnDestroy {
     
     if (!this.initialValues) {
       this.setInitialValues();
-    }
-    //   var change = {
-    //     0: 'Very Low',
-    //     5: 'Low',
-    //     10: 'Medium',
-    //     15: 'High',
-    //     20: 'Very High'
-    // };
-    //   console.log(this.options.yAxis);
-    //   this.options.yAxis = {
-    //     labels: {
-    //         formatter: function() {
-    //             var value = change[this.value];
-    //             return value !== 'undefined' ? value : this.value;
-    //         }
-    //     }
-    // }
+    }  
 
   }
-
-// TODO - 2017-10-18
-// 6. stworzyc duzego charta - z danymi z bazy
-// 7. tworzyc tyle dużych chartów ile serii danych
-// 8. historyczny przeglad danych
-
-
-// DONE - 2017-10-29
-// 1. wprawic mini charty w ruch
-
-
-// DONE - 2017-10-18
-// 2. stworzyć nową pustą strnę dla duzego charta
-// 3. on click na mini chart - przenosi do strony z duzym chartem
-// 4. przekazanie do duzego charta ID loggera
-// 5. stworzyc duzego charta - z danymi na sztywno
-
-
-
-// DONE - 2017-09-20
-// 1. wziac wszystkie wartosci typu range i sprawdzic ich min i max - ustalic jeden min i jedne max
-// 2. wysylac wszystkie wartosci seta w ramce typu desc
-// 3. tablica odwzorowujaca wartosci seta na liczby - wartosc na osi danego seta to (max - min) / liczba_setow * odpowiednia_wartosc_seta_z_tablicy (od 0 do x)
-// 4. opisac os Y wartosciami tekstowymi seta - miej lub bardziej jest

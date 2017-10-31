@@ -7,3 +7,10 @@ chart {
     font-size: 1.6em;
     text-align: center
 }
+
+.seriesName {
+    font-weight: bold;
+    font-size: 1.5em;
+    margin-right: 100px;
+    float: left;
+}
