@@ -1,7 +1,13 @@
-<p>
-  {{ itemId }}
-</p>
-<p>{{minX}} - {{maxX}}<p>
+
+
 <chart type="StockChart" [options]="options" (load)="saveChart($event.context)">
-  <xAxis (setExtremes)="onSetExtremesX($event)"></xAxis>  
+  <xAxis (setExtremes)="onSetExtremesX($event)"></xAxis>
 </chart>
+<div style="float: left" class="date">
+    {{minXDate}} <br />
+    {{minXTime}}
+</div>
+<div style="float: right; margin-right: 8px" class="date">
+  {{maxXDate}} <br />
+  {{maxXTime}}
+</div>

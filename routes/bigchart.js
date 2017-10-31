@@ -92,18 +92,18 @@ router.get('/get-data', function (req, res, next) {
                         stopdate = maxD.getTime();
                         range = stopdate - startdate;
                     }
-                    aggregate(startdate, stopdate, range, idColName, dateColName, itemId, res);
+                    aggregate(startdate, stopdate, range, idColName, dateColName, itemId, descFrame, res);
                 });
             } else {
                 // sprawdzac jaki jest range pomiedzy start i stop - pobierac wg szablonu zaproponowanego przez highcharts
-                aggregate(startdate, stopdate, range, idColName, dateColName, itemId, res);
+                aggregate(startdate, stopdate, range, idColName, dateColName, itemId, descFrame, res);
             }
 
 
         } else {
             res.status(201).json({
                 message: 'Success',
-                obj: null
+                obj: [null, null]
             });
         }
 
@@ -112,7 +112,7 @@ router.get('/get-data', function (req, res, next) {
 
 });
 
-function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, res) {
+function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, descFrame, res) {
     let startD = getDateTime(new Date(startdate));
     let stopD = getDateTime(new Date(stopdate));
     // zakres mniejszy niz 1 dzień - laduj wszystko
@@ -124,10 +124,37 @@ function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, r
                     error: err
                 });
             }
-    
-            res.status(201).json({
-                message: 'Success',
-                obj: dataFrames
+
+            DataFrame.find({ [idColName]: itemId }).sort({ _id: 1 }).limit(1).exec(function (err, minDataFrame) { // get min value
+                if (err) {
+                    return res.status(500).json({
+                        title: 'An error occured',
+                        error: err
+                    });
+                }
+                if (minDataFrame.length == 1) {
+                    dataFrames.unshift(minDataFrame);
+                }
+        
+                DataFrame.find({ [idColName]: itemId }).sort({ _id: -1 }).limit(1).exec(function (err, maxDataFrames) { // get max value
+                    if (err) {
+                        return res.status(500).json({
+                            title: 'An error occured',
+                            error: err
+                        });
+                    }
+                    if (maxDataFrames.length == 1) {
+                        dataFrames.push(maxDataFrames);
+                    }      
+                    
+                    
+                    res.status(201).json({
+                        message: 'Success',
+                        obj: [descFrame, dataFrames]
+                    });
+        
+                });
+        
             });
         });
     } else {
@@ -154,7 +181,7 @@ function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, r
                 }
                 ]
             ).exec(function (err, dataFrames) {
-                getDataCallback(err, dataFrames, res)
+                getDataCallback(err, dataFrames, descFrame, res, idColName, itemId)
             });
 
         } else {
@@ -180,7 +207,7 @@ function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, r
                     }
                     ]
                 ).exec(function (err, dataFrames) {
-                    getDataCallback(err, dataFrames, res)
+                    getDataCallback(err, dataFrames, descFrame, res, idColName, itemId)
                 });
 
             } else {
@@ -205,7 +232,7 @@ function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, r
                         }
                         ]
                     ).exec(function (err, dataFrames) {
-                        getDataCallback(err, dataFrames, res)
+                        getDataCallback(err, dataFrames, descFrame, res, idColName, itemId)
                     });
 
                 } else {
@@ -228,7 +255,7 @@ function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, r
                         }
                         ]
                     ).exec(function (err, dataFrames) {
-                        getDataCallback(err, dataFrames, res)
+                        getDataCallback(err, dataFrames, descFrame, res, idColName, itemId)
                     });
                 }
             }
@@ -237,7 +264,7 @@ function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, r
 
 }
 
-function getDataCallback(err, dataFrames, res) {
+function getDataCallback(err, dataFrames, descFrame, res, idColName, itemId) {
     if (err) {
         return res.status(500).json({
             title: 'An error occured',
@@ -249,20 +276,49 @@ function getDataCallback(err, dataFrames, res) {
         return df.record_id;
     });
 
-    // pobierz rekordy z DataFrame, o podanych id
-    DataFrame.find({ _id: { $in: dfIDs } }).exec(function (err, dataFrames) {
+    DataFrame.find({ [idColName]: itemId }).sort({ _id: 1 }).limit(1).exec(function (err, dataFrames) { // get min value
         if (err) {
             return res.status(500).json({
                 title: 'An error occured',
                 error: err
             });
         }
+        if (dataFrames.length == 1) {
+            dfIDs.unshift(dataFrames[0]._doc._id);
+        }
 
-        res.status(201).json({
-            message: 'Success',
-            obj: dataFrames
+        DataFrame.find({ [idColName]: itemId }).sort({ _id: -1 }).limit(1).exec(function (err, dataFrames) { // get max value
+            if (err) {
+                return res.status(500).json({
+                    title: 'An error occured',
+                    error: err
+                });
+            }
+            if (dataFrames.length == 1) {
+                dfIDs.push(dataFrames[0]._doc._id);
+            }
+
+            // pobierz rekordy z DataFrame, o podanych id
+            DataFrame.find({ _id: { $in: dfIDs } }).exec(function (err, dataFrames) {
+                if (err) {
+                    return res.status(500).json({
+                        title: 'An error occured',
+                        error: err
+                    });
+                }
+
+                res.status(201).json({
+                    message: 'Success',
+                    obj: [descFrame, dataFrames]
+                });
+            });
+
         });
+
     });
+
+
+
 }
 
 function getDateTime(date) {

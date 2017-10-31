@@ -18,9 +18,15 @@ import { Http, Response, Headers } from "@angular/http";
             ? '&token=' + localStorage.getItem('token')
             : '';
             return this.http.get('http://localhost:3001/bigchart/get-data?itemId=' + itemId + "&startdate=" + startdate + "&stopdate=" + stopdate + token)
-            .map((response: Response) => {                
-                var dataFrames = response.json().obj;                                
-                return dataFrames;
+            .map((response: Response) => {                                
+                var descFrame = [];
+                var dataFrames = [];
+                const mongoFrames = response.json().obj;            
+                if (mongoFrames.length == 2) {
+                    descFrame = mongoFrames[0];
+                    dataFrames = mongoFrames[1];
+                }                
+                return [descFrame, dataFrames];                                          
             })
             .catch(
                 (error: Response) => {

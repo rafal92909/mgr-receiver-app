@@ -2,3 +2,8 @@ chart {
     display: block;
     width: auto;
 }
+.date {
+    font-weight: bold;
+    font-size: 1.6em;
+    text-align: center
+}
