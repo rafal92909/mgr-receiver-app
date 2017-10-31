@@ -43,7 +43,7 @@ router.use('/', function (req, res, next) {
 router.get('/get-data', function (req, res, next) {
     let itemId = req.query.itemId;
     let startdate = req.query.startdate;
-    startdate = Math.floor(startdate);    
+    startdate = Math.floor(startdate);
     let stopdate = req.query.stopdate;
     stopdate = Math.ceil(stopdate);
     let range = stopdate - startdate;
@@ -63,9 +63,37 @@ router.get('/get-data', function (req, res, next) {
 
             if (startdate == 0 && stopdate == 0) {
                 // 0 - 0 - znaczy maks - pobierz min i max z bazy i ustal range i wykonaaj odpowiedni aggregate
-                range = 9999999999999;       
-                stopdate = 9999999999999;   
-                aggregate(startdate, stopdate, range, idColName, dateColName, itemId, res);
+
+                DataFrame.aggregate(
+                    [{ $match: { [idColName]: itemId } },
+                    {
+                        $group: {
+                            _id: null,
+                            min: { $min: "$timestamp" },
+                            max: { $max: "$timestamp" }
+                        }
+                    }
+                    ]
+                ).exec(function (err, dataFrames) {
+                    if (err) {
+                        return res.status(500).json({
+                            title: 'An error occured',
+                            error: err
+                        });
+                    }
+                    if (dataFrames.length == 0) {
+                        range = 9999999999999;
+                        stopdate = 9999999999999;
+                    } else {
+                        var minD = dataFrames[0].min;
+                        var maxD = dataFrames[0].max;
+
+                        startdate = minD.getTime();
+                        stopdate = maxD.getTime();
+                        range = stopdate - startdate;
+                    }
+                    aggregate(startdate, stopdate, range, idColName, dateColName, itemId, res);
+                });
             } else {
                 // sprawdzac jaki jest range pomiedzy start i stop - pobierac wg szablonu zaproponowanego przez highcharts
                 aggregate(startdate, stopdate, range, idColName, dateColName, itemId, res);
@@ -87,44 +115,34 @@ router.get('/get-data', function (req, res, next) {
 function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, res) {
     let startD = getDateTime(new Date(startdate));
     let stopD = getDateTime(new Date(stopdate));
-    // zakres mniejszy niz 2 dni - laduj co minute
-    if (range < 2 * 24 * 3600 * 1000) {
-        DataFrame.aggregate(
-            [{ $match: { [idColName]: itemId, [dateColName]: { $gte: startD, $lte: stopD} } },
-            {
-                $group: {
-                    _id: {
-                        year: { $year: "$timestamp" },
-                        month: { $month: "$timestamp" },
-                        day: { $dayOfMonth: "$timestamp" },
-                        hour: { $hour: "$timestamp" },
-                        minute: { $minute: "$timestamp" }
-                    },
-                    record_id: { $first: "$_id" }
-                }
-            },
-            {
-                $sort: {
-                    _id: 1
-                }
+    // zakres mniejszy niz 1 dzień - laduj wszystko
+    if (range < 24 * 3600 * 1000) {
+        DataFrame.find({ [dateColName]: { $gte: startD, $lte: stopD } }).exec(function (err, dataFrames) {
+            if (err) {
+                return res.status(500).json({
+                    title: 'An error occured',
+                    error: err
+                });
             }
-            ]
-        ).exec(function (err, dataFrames) {
-            getDataCallback(err, dataFrames, res)
+    
+            res.status(201).json({
+                message: 'Success',
+                obj: dataFrames
+            });
         });
-
     } else {
-        // zakres mniejszy niz miesiac - laduj co godzine
-        if (range < 31 * 24 * 3600 * 1000) {
+        // zakres mniejszy niz 2 dni - laduj co minute
+        if (range < 2 * 24 * 3600 * 1000) {
             DataFrame.aggregate(
-                [{ $match: { [idColName]: itemId, [dateColName]: { $gte: startD, $lte: stopD} } },
+                [{ $match: { [idColName]: itemId, [dateColName]: { $gte: startD, $lte: stopD } } },
                 {
                     $group: {
                         _id: {
                             year: { $year: "$timestamp" },
                             month: { $month: "$timestamp" },
                             day: { $dayOfMonth: "$timestamp" },
-                            hour: { $hour: "$timestamp" }
+                            hour: { $hour: "$timestamp" },
+                            minute: { $minute: "$timestamp" }
                         },
                         record_id: { $first: "$_id" }
                     }
@@ -140,16 +158,17 @@ function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, r
             });
 
         } else {
-            // zakres mniejszy niz rok - laduj co dzien
-            if (range < 13 * 31 * 24 * 3600 * 1000) {
+            // zakres mniejszy niz miesiac - laduj co godzine
+            if (range < 31 * 24 * 3600 * 1000) {
                 DataFrame.aggregate(
-                    [{ $match: { [idColName]: itemId, [dateColName]: { $gte: startD, $lte: stopD} } },
+                    [{ $match: { [idColName]: itemId, [dateColName]: { $gte: startD, $lte: stopD } } },
                     {
                         $group: {
                             _id: {
                                 year: { $year: "$timestamp" },
                                 month: { $month: "$timestamp" },
-                                day: { $dayOfMonth: "$timestamp" }
+                                day: { $dayOfMonth: "$timestamp" },
+                                hour: { $hour: "$timestamp" }
                             },
                             record_id: { $first: "$_id" }
                         }
@@ -165,30 +184,57 @@ function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, r
                 });
 
             } else {
-                // zakres wiekszy niz rok - laduj co miesiac
-                DataFrame.aggregate(
-                    [{ $match: { [idColName]: itemId, [dateColName]: { $gte: startD, $lte: stopD} } },
-                    {
-                        $group: {
-                            _id: {
-                                year: { $year: "$timestamp" },
-                                month: { $month: "$timestamp" }
-                            },
-                            record_id: { $first: "$_id" }
+                // zakres mniejszy niz rok - laduj co dzien
+                if (range < 13 * 31 * 24 * 3600 * 1000) {
+                    DataFrame.aggregate(
+                        [{ $match: { [idColName]: itemId, [dateColName]: { $gte: startD, $lte: stopD } } },
+                        {
+                            $group: {
+                                _id: {
+                                    year: { $year: "$timestamp" },
+                                    month: { $month: "$timestamp" },
+                                    day: { $dayOfMonth: "$timestamp" }
+                                },
+                                record_id: { $first: "$_id" }
+                            }
+                        },
+                        {
+                            $sort: {
+                                _id: 1
+                            }
                         }
-                    },
-                    {
-                        $sort: {
-                            _id: 1
+                        ]
+                    ).exec(function (err, dataFrames) {
+                        getDataCallback(err, dataFrames, res)
+                    });
+
+                } else {
+                    // zakres wiekszy niz rok - laduj co miesiac
+                    DataFrame.aggregate(
+                        [{ $match: { [idColName]: itemId, [dateColName]: { $gte: startD, $lte: stopD } } },
+                        {
+                            $group: {
+                                _id: {
+                                    year: { $year: "$timestamp" },
+                                    month: { $month: "$timestamp" }
+                                },
+                                record_id: { $first: "$_id" }
+                            }
+                        },
+                        {
+                            $sort: {
+                                _id: 1
+                            }
                         }
-                    }
-                    ]
-                ).exec(function (err, dataFrames) {
-                    getDataCallback(err, dataFrames, res)
-                });
+                        ]
+                    ).exec(function (err, dataFrames) {
+                        getDataCallback(err, dataFrames, res)
+                    });
+                }
             }
         }
     }
+
 }
 
 function getDataCallback(err, dataFrames, res) {
@@ -219,8 +265,8 @@ function getDataCallback(err, dataFrames, res) {
     });
 }
 
-function getDateTime(date) {    
-    let time =date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', hour12: false, second: '2-digit'});
+function getDateTime(date) {
+    let time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false, second: '2-digit' });
     let yyyy = date.getFullYear();
     let mm = date.getMonth() + 1;
     let dd = date.getDate();
@@ -229,7 +275,7 @@ function getDateTime(date) {
     dd = (dd > 9 ? '' : '0') + dd;
 
     return yyyy + '-' + mm + '-' + dd + ' ' + time;
-  }
+}
 
 // db.getCollection('dataframes').aggregate([ { $match: { "ID": "123456" }},
 // {$group: {
