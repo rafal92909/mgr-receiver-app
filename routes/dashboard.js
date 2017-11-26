@@ -51,7 +51,7 @@ router.get('/get-loggers', function (req, res, next) {
                 error: err
             });
         }
-        res.status(201).json({
+        res.status(200).json({
             message: 'Success',
             obj: ids
         });
@@ -104,14 +104,14 @@ router.get('/get-data-frames', function (req, res, next) {
                                     });
                                 }
                                 startConnection(itemId, port, idColName, dateColName, data_frame_interval);
-                                res.status(201).json({
+                                res.status(200).json({
                                     message: 'Success',
                                     obj: [descFrame, dataFrames]
                                 });
                             });   
                         } else {
                             startConnection(itemId, port);
-                            res.status(201).json({
+                            res.status(200).json({
                                 message: 'Success',
                                 obj: [descFrame, dataFrames]
                             });
@@ -120,7 +120,7 @@ router.get('/get-data-frames', function (req, res, next) {
                     });
                 } else {
                     startConnection(itemId, port);
-                    res.status(201).json({
+                    res.status(200).json({
                         message: 'Success',
                         obj: [descFrame, null]
                     });
@@ -155,7 +155,7 @@ function startConnection(itemId, portPart, idColName, dateColName, data_frame_in
                 console.log('disconnected from socked ' + port);
             });
         
-            socket.on('add-message', (message) => {
+            socket.on('message', (message) => {
                 io.emit('message', { type: 'new-message', data: message });
             });
         });

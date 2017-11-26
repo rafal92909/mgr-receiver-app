@@ -101,7 +101,7 @@ router.get('/get-data', function (req, res, next) {
 
 
         } else {
-            res.status(201).json({
+            res.status(200).json({
                 message: 'Success',
                 obj: [null, null]
             });
@@ -148,7 +148,7 @@ function aggregate(startdate, stopdate, range, idColName, dateColName, itemId, d
                     }      
                     
                     
-                    res.status(201).json({
+                    res.status(200).json({
                         message: 'Success',
                         obj: [descFrame, dataFrames]
                     });
@@ -307,7 +307,7 @@ function getDataCallback(err, dataFrames, descFrame, res, idColName, itemId) {
                     });
                 }
 
-                res.status(201).json({
+                res.status(200).json({
                     message: 'Success',
                     obj: [descFrame, dataFrames]
                 });
