@@ -331,3 +331,4 @@ export class SmallChartComponent implements OnInit, OnDestroy {
     }  
 
   }
+}

@@ -216,7 +216,7 @@ export class BigChartComponent implements OnInit {
     }
     if (mode == 1) {
       for (let j = 0; j < this.valueKeys.length; j++) {
-        this.chart.series[0].setData(pointsArr[j]);
+        this.chart.series[j].setData(pointsArr[j]);
       }
     }
   }
